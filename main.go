@@ -51,7 +51,7 @@ func main() {
 	if err != nil {
 		log.Fatalln("fail to generate tokens:", err)
 	}
-	fmt.Println(tokens)
+	fmt.Println(strings.Join(tokens, " "))
 }
 
 func generate(chain *gomarkov.Chain) ([]string, error) {
