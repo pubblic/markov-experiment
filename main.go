@@ -8,8 +8,10 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mb-14/gomarkov"
@@ -30,16 +32,18 @@ func main() {
 		order    int
 		start    int
 		end      int
+		workers  int
 	)
 
 	flag.BoolVar(&training, "training", false, "do train the markov chin")
 	flag.IntVar(&order, "order", 4, "markov chain order")
 	flag.IntVar(&start, "start", 1, "start page number (inclusive)")
 	flag.IntVar(&end, "end", 1, "end page number (non-inclusive)")
+	flag.IntVar(&workers, "workers", runtime.NumCPU(), "parallel training")
 	flag.Parse()
 
 	if training {
-		train(order, start, end)
+		train(order, start, end, workers)
 		return
 	}
 
@@ -97,20 +101,43 @@ func saveChain(chain *gomarkov.Chain) error {
 	return w.Close()
 }
 
-func train(order int, start, end int) {
+func train(order int, start, end, workers int) {
 	chain, err := loadChain(order)
 	if err != nil {
 		log.Fatalln("cannot load markov chain:", err)
 	}
-	for i := end - 1; i >= start; i-- {
-		raws, err := readPage(i)
-		if err != nil {
-			log.Fatalf("cannot read page#%d: %v", i, err)
+
+	var chainLock sync.Mutex
+	done := make(chan struct{})
+
+	piece := (end - start) / workers
+	rem := (end - start) % workers
+	for i := 0; i < workers; i++ {
+		p := piece
+		if rem > 0 {
+			rem--
+			p++
 		}
-		for _, r := range raws {
-			chain.Add(splitParagraph(r.title))
-			log.Printf("Add #%d: %q", r.number, r.title)
-		}
+		go func(start, end int) {
+			for j := start; j < end; j++ {
+				raws, err := readPage(j)
+				if err != nil {
+					log.Fatalf("cannot read page#%d: %v", i, err)
+				}
+				chainLock.Lock()
+				for _, r := range raws {
+					chain.Add(splitParagraph(r.title))
+					log.Printf("Add #%d: %q", r.number, r.title)
+				}
+				chainLock.Unlock()
+			}
+			done <- struct{}{}
+		}(start, start+p)
+		start += p
+	}
+
+	for i := 0; i < workers; i++ {
+		<-done
 	}
 	if err = saveChain(chain); err != nil {
 		log.Fatal("cannot save markov chain:", err)
