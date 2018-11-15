@@ -59,14 +59,14 @@ func generate(chain *gomarkov.Chain) ([]string, error) {
 	for i := range tokens {
 		tokens[i] = gomarkov.StartToken
 	}
-	for tokens[len(tokens)-chain.Order] != gomarkov.EndToken {
+	for tokens[len(tokens)-1] != gomarkov.EndToken {
 		next, err := chain.Generate(tokens[len(tokens)-chain.Order:])
 		if err != nil {
 			return nil, err
 		}
 		tokens = append(tokens, next)
 	}
-	return tokens, nil
+	return tokens[chain.Order : len(tokens)-1], nil
 }
 
 func loadChain(order int) (*gomarkov.Chain, error) {
