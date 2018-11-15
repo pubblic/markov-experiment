@@ -123,9 +123,10 @@ type brief struct {
 }
 
 func readPage(i int) ([]*brief, error) {
-	req, _ := http.NewRequest("GET", fmt.Sprintf("https://coinpan.com/index.php?mid=free&page=%d", i), nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("https://coinpan.com/index.php?page=%d&mid=free", i), nil)
 	req.Header.Add("Accept", "*/*")
 	req.Header.Add("Accept-Language", "en")
+	req.Header.Add("Referer", "https://coinpan.com/free")
 	req.Header.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36 OPR/56.0.3051.99")
 
 	resp, err := http.DefaultClient.Do(req)
