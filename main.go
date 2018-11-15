@@ -109,7 +109,7 @@ func train(order int, start, end int) {
 		}
 		for _, r := range raws {
 			chain.Add(splitParagraph(r.title))
-			log.Printf("Add %q", r.title)
+			log.Printf("Add #%d: %q", r.number, r.title)
 		}
 	}
 	if err = saveChain(chain); err != nil {
