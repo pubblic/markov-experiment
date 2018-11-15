@@ -15,7 +15,7 @@ import (
 	"github.com/mb-14/gomarkov"
 )
 
-const chainFile = "markov.chain"
+const chainFile = "markov.json"
 
 var tokenBoundary = regexp.MustCompile(`\s+`)
 
