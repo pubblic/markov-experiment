@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -117,7 +118,8 @@ func train(order int, start, end int) {
 }
 
 type brief struct {
-	title string
+	number int64
+	title  string
 }
 
 func readPage(i int) ([]*brief, error) {
@@ -135,10 +137,16 @@ func readPage(i int) ([]*brief, error) {
 	if err != nil {
 		return nil, err
 	}
-	as := document.Find(".board_list tr:not(.notice) td.title a")
-	raws := make([]*brief, as.Length())
-	as.Each(func(i int, a *goquery.Selection) {
-		raws[i] = &brief{title: strings.TrimSpace(a.Text())}
+	trs := document.Find(".board_list tr:not(.notice)")
+	raws := make([]*brief, trs.Length())
+	trs.Each(func(i int, tr *goquery.Selection) {
+		numberStr := strings.TrimSpace(tr.Find("td.no span.number").Text())
+		number, _ := strconv.ParseInt(numberStr, 10, 64)
+		title := strings.TrimSpace(tr.Find("td.title a").Text())
+		raws[i] = &brief{
+			number: number,
+			title:  title,
+		}
 	})
 	return raws, nil
 }
