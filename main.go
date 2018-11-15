@@ -33,6 +33,8 @@ func main() {
 		start    int
 		end      int
 		workers  int
+
+		n int
 	)
 
 	flag.BoolVar(&training, "training", false, "do train the markov chin")
@@ -40,6 +42,8 @@ func main() {
 	flag.IntVar(&start, "start", 1, "start page number (inclusive)")
 	flag.IntVar(&end, "end", 1, "end page number (non-inclusive)")
 	flag.IntVar(&workers, "workers", runtime.NumCPU(), "parallel training")
+
+	flag.IntVar(&n, "n", 1, "generate n times")
 	flag.Parse()
 
 	if training {
@@ -51,11 +55,14 @@ func main() {
 	if err != nil {
 		log.Fatalln("cnanot load markov chain:", err)
 	}
-	tokens, err := generate(chain)
-	if err != nil {
-		log.Fatalln("fail to generate tokens:", err)
+
+	for i := 0; i < n; i++ {
+		tokens, err := generate(chain)
+		if err != nil {
+			log.Fatalln("fail to generate tokens:", err)
+		}
+		fmt.Println(strings.Join(tokens, " "))
 	}
-	fmt.Println(strings.Join(tokens, " "))
 }
 
 func generate(chain *gomarkov.Chain) ([]string, error) {
