@@ -102,7 +102,7 @@ func train(order int, start, end int) {
 	if err != nil {
 		log.Fatalln("cannot load markov chain:", err)
 	}
-	for i := start; i < end; i++ {
+	for i := end - 1; i >= start; i-- {
 		raws, err := readPage(i)
 		if err != nil {
 			log.Fatalf("cannot read page#%d: %v", i, err)
