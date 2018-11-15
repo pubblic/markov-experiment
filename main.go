@@ -137,12 +137,12 @@ func readPage(i int) ([]*brief, error) {
 	if err != nil {
 		return nil, err
 	}
-	trs := document.Find(".board_list tr:not(.notice)")
+	trs := document.Find(".board_list tbody tr:not(.notice)")
 	raws := make([]*brief, trs.Length())
 	trs.Each(func(i int, tr *goquery.Selection) {
 		numberStr := strings.TrimSpace(tr.Find("td.no span.number").Text())
 		number, _ := strconv.ParseInt(numberStr, 10, 64)
-		title := strings.TrimSpace(tr.Find("td.title a").Text())
+		title := strings.TrimSpace(tr.Find("td.title a").First().Text())
 		raws[i] = &brief{
 			number: number,
 			title:  title,
